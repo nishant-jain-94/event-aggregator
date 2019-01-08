@@ -1,0 +1,37 @@
+version: '3'
+services:
+  aggregator:
+    build: .
+    ports:
+      - "4000:3000"
+    restart: always
+    depends_on: 
+      - logstash
+  elasticsearch:
+    image: elasticsearch:5-alpine
+    environment:
+      - LOGSPOUT=ignore
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  logstash:
+    image: logstash:alpine
+    command: -f /etc/logstash.conf
+    volumes:
+      - ./logstash.conf:/etc/logstash.conf
+    ports:
+      - "5000:5000"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      - LOGSPOUT=ignore
+    links:
+      - elasticsearch
+  kibana:
+    image: kibana:5
+    environment: 
+      - LOGSPOUT=ignore
+    links:
+      - elasticsearch
+    ports:
+      - "5601:5601"
